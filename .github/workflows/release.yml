@@ -57,7 +57,8 @@ jobs:
       #   with:
       #     file-name: ${{env.working-directory}}/package.json
       #     token: ${{ secrets.GITHUB_TOKEN }}
-
+      - name: Log
+        run: 'echo "${{ steps.check.outputs }} ${{ steps.check.outputs.type }}"'
       - name: Version update detected
         if: steps.check.outputs.changed == 'true'
         run: 'echo "Version change found! New version: ${{ steps.check.outputs.version }} (${{ steps.check.outputs.type }})"'
