@@ -42,12 +42,21 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GPR_TOKEN }}
 
-      - name: Check if version has been updated
+      - name: Check package version
+        uses: technote-space/package-version-check-action@v1
         id: check
-        uses: EndBug/version-check@v1
         with:
-          file-name: ${{env.working-directory}}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          COMMIT_DISABLED: 1
+          PACKAGE_DIR: ${{env.working-directory}}
+          PACKAGE_NAME: ${{env.working-directory}}/package.json
+          GITHUB_TOKEN: ${{ secrets.GPR_TOKEN }}
+
+      # - name: Check if version has been updated
+      #   id: check
+      #   uses: EndBug/version-check@v1
+      #   with:
+      #     file-name: ${{env.working-directory}}/package.json
+      #     token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Version update detected
         if: steps.check.outputs.changed == 'true'
