@@ -42,46 +42,21 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GPR_TOKEN }}
 
-      - name: Check if version has been updated
+      - name: Check versions
         id: check
-        uses: EndBug/version-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Version update detected
-        if: steps.check.outputs.changed == 'true'
-        run: 'echo "Version change found! New version: ${{ steps.check.outputs.version }} (${{ steps.check.outputs.type }})"'
-
-      - name: Get all tags
-        if: steps.check.outputs.changed == 'true'
-        run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
         working-directory: ${{env.working-directory}}
-
-      - name: Release notes
-        if: steps.check.outputs.changed == 'true'
-        id: release_notes
         run: |
-          body=$(git log $(git describe --tags --abbrev=0)..HEAD --pretty=format:"- %s %h ")
-          echo $body
-          body="${body//'%'/'%25'}"
-          body="${body//$'\n'/'%0A'}"
-          body="${body//$'\r'/'%0D'}"
-          echo "::set-output name=body::$body"
-          echo "::set-output name=version::$(node -p 'require("./package.json").version')"
+          packagename=$(cat package.json | grep name | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]')
+          npm config set '//npm.pkg.github.com/:_authToken' "${{ secrets.GITHUB_TOKEN }}"
+          currentVersion=$(npm show packagename version)
+          version=$(cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]')
+          echo "::set-output name::currentVersion::$currentVersion"
+          echo "::set-output name::version::$version"
+
+      - name: Release
+        if: steps.check.outputs.currentVersion != steps.check.outputs.version 
+        run: |
           npm config set '//npm.pkg.github.com/:_authToken' "${{ secrets.GITHUB_TOKEN }}"
           yarn release
         working-directory: ${{env.working-directory}}
-
-      - name: New version detected, release package
-        if: steps.check.outputs.changed == 'true'
-        uses: actions/create-release@master
-        with:
-          tag_name: v${{ steps.release_notes.outputs.version }}
-          release_name: Release ${{ steps.release_notes.outputs.version }}
-          body: |
-            ${{ steps.release_notes.outputs.body }}
-        env:
-          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
-      - name: No change
-        if: steps.check.outputs.changed != 'true'
-        run: 'echo "No version change :/"'
+        
