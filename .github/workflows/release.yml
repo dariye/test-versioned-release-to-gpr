@@ -59,7 +59,7 @@ jobs:
       #     token: ${{ secrets.GITHUB_TOKEN }}
       - name: Log
         if: always()
-        run: echo ${{ steps.check.outputs }}
+        run: echo ${{ steps.check.outputs.sha.description }}
 
       - name: Success
         if: success()
