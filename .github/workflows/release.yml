@@ -1,0 +1,61 @@
+name: Release client package
+
+on:
+  pull_request:
+    paths:
+      - "client-package/package.json"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      working-directory: ./client-package
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 10
+          registry-url: 'https://npm.pkg.github.com'
+
+      - name: Get yarn cache location
+        id: yarn-cache
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+        working-directory: ${{env.working-directory}}
+
+      - name: Restore yarn cache
+        uses: actions/cache@v1
+        with:
+          path: ${{ steps.yarn-cache.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install dependencies
+        run: yarn --frozen-lockfile --ignore-engines --ignore-optional --non-interactive --silent --ignore-scripts --production=false
+        working-directory: ${{env.working-directory}}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GPR_TOKEN }}
+
+      - name: Get versions
+        id: check
+        working-directory: ${{env.working-directory}}
+        run: |
+          packagename=$(cat package.json | grep name | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]')
+          npm config set '//npm.pkg.github.com/:_authToken' "${{ secrets.GITHUB_TOKEN }}"
+          currentVersion=$(npm show packagename version)
+          version=$(cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]')
+          echo "::set-output name=currentVersion::$currentVersion"
+          echo "::set-output name=version::$version"
+
+      - name: Release
+        if: steps.check.outputs.currentVersion != steps.check.outputs.version 
+        run: |
+          npm config set '//npm.pkg.github.com/:_authToken' "${{ secrets.GITHUB_TOKEN }}"
+          npm publish
+        working-directory: ${{env.working-directory}}

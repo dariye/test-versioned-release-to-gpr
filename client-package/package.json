@@ -1,0 +1,9 @@
+{
+  "name": "@pauldariye/test-versioned-release-to-gpr",
+  "version": "1.0.1",
+  "main": "index.js",
+  "license": "MIT",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  }
+}
