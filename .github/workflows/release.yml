@@ -57,5 +57,5 @@ jobs:
         if: steps.check.outputs.currentVersion != steps.check.outputs.version 
         run: |
           npm config set '//npm.pkg.github.com/:_authToken' "${{ secrets.GITHUB_TOKEN }}"
-          yarn release
+          npm publish
         working-directory: ${{env.working-directory}}
