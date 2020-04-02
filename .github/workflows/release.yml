@@ -17,6 +17,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check package version
+        uses: technote-space/package-version-check-action@v1
+        id: check
+        with:
+          COMMIT_DISABLED: 1
+          PACKAGE_DIR: ${{env.working-directory}}
+          PACKAGE_NAME: ${{env.working-directory}}/package.json
+          GITHUB_TOKEN: ${{ secrets.GPR_TOKEN }}
+
       - name: Setup node
         uses: actions/setup-node@v1
         with:
@@ -42,68 +51,8 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GPR_TOKEN }}
 
-      - name: Check package version
-        uses: technote-space/package-version-check-action@v1
-        id: check
-        with:
-          COMMIT_DISABLED: 1
-          PACKAGE_DIR: ${{env.working-directory}}
-          PACKAGE_NAME: ${{env.working-directory}}/package.json
-          GITHUB_TOKEN: ${{ secrets.GPR_TOKEN }}
-
-      # - name: Check if version has been updated
-      #   id: check
-      #   uses: EndBug/version-check@v1
-      #   with:
-      #     file-name: ${{env.working-directory}}/package.json
-      #     token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Log
-        if: always()
-        run: echo ${{ steps.check.outputs.sha.description }}
-        
-      - name: Failure
-        if: failure()
-        run: echo "Failure"
-
-      - name: Success
-        if: success()
-        run: echo "Success"
-      
-
-      - name: Version update detected
-        if: steps.check.outputs.changed == 'true'
-        run: 'echo "Version change found! New version: ${{ steps.check.outputs.version }} (${{ steps.check.outputs.type }})"'
-
-      - name: Get all tags
-        if: steps.check.outputs.changed == 'true'
-        run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-        working-directory: ${{env.working-directory}}
-
-      - name: Release notes
-        if: steps.check.outputs.changed == 'true'
-        id: release_notes
+      - name: Release
         run: |
-          body=$(git log $(git describe --tags --abbrev=0)..HEAD --pretty=format:"- %s %h ")
-          echo $body
-          body="${body//'%'/'%25'}"
-          body="${body//$'\n'/'%0A'}"
-          body="${body//$'\r'/'%0D'}"
-          echo "::set-output name=body::$body"
-          echo "::set-output name=version::$(node -p 'require("./package.json").version')"
           npm config set '//npm.pkg.github.com/:_authToken' "${{ secrets.GITHUB_TOKEN }}"
           yarn release
         working-directory: ${{env.working-directory}}
-
-      - name: New version detected, release package
-        if: steps.check.outputs.changed == 'true'
-        uses: actions/create-release@master
-        with:
-          tag_name: v${{ steps.release_notes.outputs.version }}
-          release_name: Release ${{ steps.release_notes.outputs.version }}
-          body: |
-            ${{ steps.release_notes.outputs.body }}
-        env:
-          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
-      - name: No change
-        if: steps.check.outputs.changed != 'true'
-        run: 'echo "No version change :/"'
