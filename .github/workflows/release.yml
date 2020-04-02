@@ -46,7 +46,7 @@ jobs:
         id: check
         uses: EndBug/version-check@v1
         with:
-          file-name: ${{env.working-directory}}/package.json
+          file-name: ${{env.working-directory}}
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Version update detected
