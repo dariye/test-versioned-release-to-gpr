@@ -82,7 +82,7 @@ jobs:
           body: |
             ${{ steps.release_notes.outputs.body }}
         env:
-          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: No change
         if: steps.check.outputs.changed != 'true'
