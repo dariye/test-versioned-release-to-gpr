@@ -1,6 +1,9 @@
 {
-  "name": "client-package",
+  "name": "@pauldariye/test-versioned-release-to-gpr",
   "version": "1.0.0",
   "main": "index.js",
-  "license": "MIT"
+  "license": "MIT",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  }
 }

@@ -61,6 +61,14 @@ jobs:
         if: always()
         run: echo ${{ steps.check.outputs }}
 
+      - name: Success
+        if: success()
+        run: echo "Success"
+      
+      - name: Failure
+        if: failure()
+        run: echo "Failure"
+
       - name: Version update detected
         if: steps.check.outputs.changed == 'true'
         run: 'echo "Version change found! New version: ${{ steps.check.outputs.version }} (${{ steps.check.outputs.type }})"'
