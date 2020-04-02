@@ -60,14 +60,15 @@ jobs:
       - name: Log
         if: always()
         run: echo ${{ steps.check.outputs.sha.description }}
+        
+      - name: Failure
+        if: failure()
+        run: echo "Failure"
 
       - name: Success
         if: success()
         run: echo "Success"
       
-      - name: Failure
-        if: failure()
-        run: echo "Failure"
 
       - name: Version update detected
         if: steps.check.outputs.changed == 'true'
