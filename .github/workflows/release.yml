@@ -42,7 +42,7 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GPR_TOKEN }}
 
-      - name: Check versions
+      - name: Get versions
         id: check
         working-directory: ${{env.working-directory}}
         run: |
@@ -50,8 +50,8 @@ jobs:
           npm config set '//npm.pkg.github.com/:_authToken' "${{ secrets.GITHUB_TOKEN }}"
           currentVersion=$(npm show packagename version)
           version=$(cat package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]')
-          echo "::set-output name::currentVersion::$currentVersion"
-          echo "::set-output name::version::$version"
+          echo "::set-output name=currentVersion::$currentVersion"
+          echo "::set-output name=version::$version"
 
       - name: Release
         if: steps.check.outputs.currentVersion != steps.check.outputs.version 
@@ -59,4 +59,3 @@ jobs:
           npm config set '//npm.pkg.github.com/:_authToken' "${{ secrets.GITHUB_TOKEN }}"
           yarn release
         working-directory: ${{env.working-directory}}
-        
