@@ -59,7 +59,7 @@ jobs:
       #     token: ${{ secrets.GITHUB_TOKEN }}
       - name: Log
         if: always()
-        run: 'echo "${{ steps.check.outputs }} ${{ steps.check.outputs.type }}"'
+        run: 'echo "${{ steps.check }"'
 
       - name: Version update detected
         if: steps.check.outputs.changed == 'true'
